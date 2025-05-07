@@ -26,9 +26,18 @@ interface ChatWindowProps {
   onSendMessage: (message: string) => void;
   onBack?: () => void;
   onTransferToAgent: () => void;
+  onTransferToAI: () => void;
+  currentTab: string;
 }
 
-const ChatWindow = ({ chat, onSendMessage, onBack, onTransferToAgent }: ChatWindowProps) => {
+const ChatWindow = ({ 
+  chat, 
+  onSendMessage, 
+  onBack, 
+  onTransferToAgent, 
+  onTransferToAI,
+  currentTab
+}: ChatWindowProps) => {
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -51,11 +60,11 @@ const ChatWindow = ({ chat, onSendMessage, onBack, onTransferToAgent }: ChatWind
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "active":
-        return { label: "Ativo", color: "bg-green-500" };
+        return { label: "Ativo", color: "bg-gray-500" };
       case "waiting":
-        return { label: "Aguardando atendente", color: "bg-amber-500" };
+        return { label: "Aguardando", color: "bg-gray-400" };
       case "resolved":
-        return { label: "Resolvido", color: "bg-blue-500" };
+        return { label: "Resolvido", color: "bg-gray-600" };
       default:
         return { label: status, color: "bg-gray-500" };
     }
@@ -65,7 +74,7 @@ const ChatWindow = ({ chat, onSendMessage, onBack, onTransferToAgent }: ChatWind
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-3 border-b">
+      <div className="flex items-center justify-between p-3 border-b bg-secondary/30">
         <div className="flex items-center gap-3">
           {onBack && (
             <Button variant="ghost" size="icon" onClick={onBack}>
@@ -98,9 +107,15 @@ const ChatWindow = ({ chat, onSendMessage, onBack, onTransferToAgent }: ChatWind
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onTransferToAgent}>
-                Transferir para atendente
-              </DropdownMenuItem>
+              {currentTab === "ai" ? (
+                <DropdownMenuItem onClick={onTransferToAgent}>
+                  Transferir para atendente
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={onTransferToAI}>
+                  Transferir para IA
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem>Marcar como resolvido</DropdownMenuItem>
               <DropdownMenuItem>Ver informações do cliente</DropdownMenuItem>
               <DropdownMenuItem>Exportar conversa</DropdownMenuItem>
@@ -125,7 +140,7 @@ const ChatWindow = ({ chat, onSendMessage, onBack, onTransferToAgent }: ChatWind
           placeholder="Digite uma mensagem..."
           className="flex-1"
         />
-        <Button type="submit" disabled={message.trim() === ""}>
+        <Button type="submit" disabled={message.trim() === ""} className="bg-gray-600 hover:bg-gray-700">
           <Send size={18} />
           <span className="ml-2">Enviar</span>
         </Button>
@@ -147,10 +162,10 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
       <div
         className={`max-w-[80%] rounded-lg px-4 py-2 ${
           isUser
-            ? "bg-primary text-primary-foreground"
+            ? "bg-gray-600 text-white"
             : isAI
-              ? "bg-secondary text-secondary-foreground"
-              : "bg-muted"
+              ? "bg-gray-500 text-white"
+              : "bg-gray-200 text-gray-800"
         }`}
       >
         {!isUser && (
@@ -158,7 +173,7 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
             {isAI ? (
               <div className="flex items-center">
                 <Bot size={12} />
-                <span className="ml-1">Assistente IA</span>
+                <span className="ml-1">IA</span>
               </div>
             ) : (
               <div className="flex items-center">
@@ -172,10 +187,10 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
         <div
           className={`text-xs mt-1 ${
             isUser
-              ? "text-primary-foreground/80"
+              ? "text-gray-300"
               : isAI
-                ? "text-secondary-foreground/80"
-                : "text-muted-foreground"
+                ? "text-gray-300"
+                : "text-gray-500"
           }`}
         >
           {format(message.timestamp, "HH:mm")}

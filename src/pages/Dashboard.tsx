@@ -1,11 +1,13 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layouts/MainLayout";
 import ChatList from "@/components/chat/ChatList";
 import ChatWindow from "@/components/chat/ChatWindow";
 import { useIsMobile } from "@/hooks/use-mobile";
 import NoSelectedChat from "@/components/chat/NoSelectedChat";
 import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export interface Message {
   id: string;
@@ -27,11 +29,14 @@ export interface Chat {
   unreadCount: number;
   messages: Message[];
   status: "active" | "resolved" | "waiting";
+  handledBy: "ai" | "agent";
 }
 
 const Dashboard = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "agent";
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [showChatList, setShowChatList] = useState(!isMobile);
   
@@ -48,6 +53,7 @@ const Dashboard = () => {
       lastMessageTime: new Date(Date.now() - 20 * 60000),
       unreadCount: 3,
       status: "active",
+      handledBy: "agent",
       messages: [
         {
           id: "m1",
@@ -60,14 +66,14 @@ const Dashboard = () => {
           id: "m2",
           content: "Olá Maria! Vou verificar o status do seu pedido agora mesmo.",
           timestamp: new Date(Date.now() - 24 * 60000),
-          sender: "ai",
+          sender: "agent",
           read: true
         },
         {
           id: "m3",
           content: "Seu pedido #12345 está em processo de separação e será enviado hoje. Você receberá o código de rastreamento por e-mail em breve.",
           timestamp: new Date(Date.now() - 23 * 60000),
-          sender: "ai",
+          sender: "agent",
           read: true
         },
         {
@@ -90,6 +96,7 @@ const Dashboard = () => {
       lastMessageTime: new Date(Date.now() - 12 * 3600000),
       unreadCount: 0,
       status: "waiting",
+      handledBy: "ai",
       messages: [
         {
           id: "m1",
@@ -132,6 +139,7 @@ const Dashboard = () => {
       lastMessageTime: new Date(Date.now() - 2 * 86400000),
       unreadCount: 0,
       status: "resolved",
+      handledBy: "agent",
       messages: [
         {
           id: "m1",
@@ -144,12 +152,25 @@ const Dashboard = () => {
           id: "m2",
           content: "Olá Ana! Sinto muito pelo inconveniente. Vamos resolver isso juntos. Você está tentando fazer login com qual e-mail?",
           timestamp: new Date(Date.now() - 2.15 * 86400000),
-          sender: "ai",
+          sender: "agent",
           read: true
         }
       ]
     }
   ]);
+
+  // Filtrar chats com base na aba ativa
+  const filteredChats = chats.filter(chat => chat.handledBy === activeTab);
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
+
+  // Resetar o chat selecionado ao mudar de aba
+  useEffect(() => {
+    setSelectedChat(null);
+    setShowChatList(!isMobile);
+  }, [activeTab, isMobile]);
 
   const handleSelectChat = (chat: Chat) => {
     // Mark messages as read when opening chat
@@ -193,21 +214,21 @@ const Dashboard = () => {
     setSelectedChat(updatedChat);
     setChats(chats.map(c => c.id === selectedChat.id ? updatedChat : c));
     
-    // Simulate AI response after a delay
+    // Simulate response after a delay
     setTimeout(() => {
-      const aiResponse: Message = {
-        id: `ai-${Date.now()}`,
-        content: generateAIResponse(content),
+      const responseMessage: Message = {
+        id: `${activeTab}-${Date.now()}`,
+        content: generateResponse(content, activeTab),
         timestamp: new Date(),
-        sender: "ai",
+        sender: activeTab as "ai" | "agent",
         read: true
       };
       
       const finalChat = {
         ...updatedChat,
-        lastMessage: aiResponse.content,
+        lastMessage: responseMessage.content,
         lastMessageTime: new Date(),
-        messages: [...updatedChat.messages, aiResponse]
+        messages: [...updatedChat.messages, responseMessage]
       };
       
       setSelectedChat(finalChat);
@@ -217,6 +238,7 @@ const Dashboard = () => {
 
   const handleTransferToAgent = () => {
     if (!selectedChat) return;
+    if (selectedChat.handledBy === "agent") return;
     
     toast({
       title: "Atendimento transferido",
@@ -236,6 +258,7 @@ const Dashboard = () => {
     const updatedChat = {
       ...selectedChat,
       status: "waiting" as const,
+      handledBy: "agent" as const,
       lastMessage: transferMessage.content,
       lastMessageTime: new Date(),
       messages: [...selectedChat.messages, transferMessage]
@@ -243,10 +266,46 @@ const Dashboard = () => {
     
     setSelectedChat(updatedChat);
     setChats(chats.map(c => c.id === selectedChat.id ? updatedChat : c));
+    // Mudar para a aba de atendente
+    setSearchParams({ tab: "agent" });
   };
 
-  const generateAIResponse = (userMessage: string): string => {
-    const responses = [
+  const handleTransferToAI = () => {
+    if (!selectedChat) return;
+    if (selectedChat.handledBy === "ai") return;
+    
+    toast({
+      title: "Atendimento transferido",
+      description: "A IA assumirá a conversa agora.",
+      duration: 3000,
+    });
+    
+    // Add system message about transfer
+    const transferMessage: Message = {
+      id: `system-${Date.now()}`,
+      content: "Transferindo para a IA...",
+      timestamp: new Date(),
+      sender: "agent",
+      read: true
+    };
+    
+    const updatedChat = {
+      ...selectedChat,
+      status: "active" as const,
+      handledBy: "ai" as const,
+      lastMessage: transferMessage.content,
+      lastMessageTime: new Date(),
+      messages: [...selectedChat.messages, transferMessage]
+    };
+    
+    setSelectedChat(updatedChat);
+    setChats(chats.map(c => c.id === selectedChat.id ? updatedChat : c));
+    // Mudar para a aba de IA
+    setSearchParams({ tab: "ai" });
+  };
+
+  const generateResponse = (userMessage: string, responder: string): string => {
+    const aiResponses = [
       "Entendi sua solicitação. Vou verificar isso para você imediatamente.",
       "Obrigado por sua mensagem. Estamos processando seu pedido.",
       "Compreendo sua situação. Deixe-me ver como podemos resolver isso.",
@@ -254,41 +313,63 @@ const Dashboard = () => {
       "Recebi sua mensagem. Estou consultando as informações necessárias para te ajudar."
     ];
     
+    const agentResponses = [
+      "Estou verificando seu caso agora mesmo, por favor aguarde um momento.",
+      "Vou consultar o sistema para te dar a melhor resposta possível.",
+      "Entendi o seu problema, já estou trabalhando na solução.",
+      "Obrigado pela paciência, estamos analisando o seu caso com atenção.",
+      "Vou verificar essa informação com o departamento responsável e te retorno em seguida."
+    ];
+    
     if (userMessage.toLowerCase().includes("obrigad")) {
-      return "Foi um prazer te ajudar! Se precisar de mais alguma coisa, é só me avisar.";
+      return responder === "ai" 
+        ? "Foi um prazer te ajudar! Se precisar de mais alguma coisa, é só me avisar."
+        : "Disponha! Estamos sempre à disposição para ajudar. Precisa de mais alguma coisa?";
     }
     
+    const responses = responder === "ai" ? aiResponses : agentResponses;
     return responses[Math.floor(Math.random() * responses.length)];
   };
 
   return (
     <MainLayout>
-      <div className="flex h-full gap-4">
-        {(showChatList || !isMobile) && (
-          <div className={`${isMobile ? "w-full" : "w-80"} h-full flex-shrink-0 border rounded-lg overflow-hidden`}>
-            <ChatList 
-              chats={chats} 
-              selectedChatId={selectedChat?.id || ""} 
-              onSelectChat={handleSelectChat} 
-            />
-          </div>
-        )}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full h-full">
+        <TabsList className="grid w-[400px] grid-cols-2 mx-auto mb-4">
+          <TabsTrigger value="ai">IA</TabsTrigger>
+          <TabsTrigger value="agent">Atendente</TabsTrigger>
+        </TabsList>
         
-        {(!showChatList || !isMobile) && (
-          <div className="flex-1 h-full border rounded-lg overflow-hidden">
-            {selectedChat ? (
-              <ChatWindow 
-                chat={selectedChat} 
-                onSendMessage={handleSendMessage}
-                onBack={isMobile ? handleBackToList : undefined}
-                onTransferToAgent={handleTransferToAgent}
-              />
-            ) : (
-              <NoSelectedChat />
+        <TabsContent value={activeTab} className="h-[calc(100%-60px)]">
+          <div className="flex h-full gap-4">
+            {(showChatList || !isMobile) && (
+              <div className={`${isMobile ? "w-full" : "w-80"} h-full flex-shrink-0 border rounded-lg overflow-hidden bg-secondary/30`}>
+                <ChatList 
+                  chats={filteredChats} 
+                  selectedChatId={selectedChat?.id || ""} 
+                  onSelectChat={handleSelectChat} 
+                />
+              </div>
+            )}
+            
+            {(!showChatList || !isMobile) && (
+              <div className="flex-1 h-full border rounded-lg overflow-hidden bg-secondary/30">
+                {selectedChat ? (
+                  <ChatWindow 
+                    chat={selectedChat} 
+                    onSendMessage={handleSendMessage}
+                    onBack={isMobile ? handleBackToList : undefined}
+                    onTransferToAgent={handleTransferToAgent}
+                    onTransferToAI={handleTransferToAI}
+                    currentTab={activeTab}
+                  />
+                ) : (
+                  <NoSelectedChat />
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </MainLayout>
   );
 };

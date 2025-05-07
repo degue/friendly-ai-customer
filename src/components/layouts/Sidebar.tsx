@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, BarChart3, Settings, Menu, X } from "lucide-react";
+import { MessageSquare, User, Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 const Sidebar = () => {
   const isMobile = useIsMobile();
@@ -16,19 +16,14 @@ const Sidebar = () => {
 
   const navigationItems = [
     {
-      name: "Conversas",
-      path: "/dashboard",
+      name: "IA",
+      path: "/dashboard?tab=ai",
       icon: <MessageSquare size={20} />,
     },
     {
-      name: "Estatísticas",
-      path: "/stats",
-      icon: <BarChart3 size={20} />,
-    },
-    {
-      name: "Configurações",
-      path: "/settings",
-      icon: <Settings size={20} />,
+      name: "Atendente",
+      path: "/dashboard?tab=agent",
+      icon: <User size={20} />,
     },
   ];
 
@@ -59,7 +54,7 @@ const Sidebar = () => {
       >
         <div className="flex h-14 items-center justify-center border-b p-4">
           {isOpen ? (
-            <h1 className="text-lg font-bold text-primary">Atendimento IA</h1>
+            <h1 className="text-lg font-bold text-primary">Construai</h1>
           ) : !isMobile && (
             <Button variant="ghost" size="icon" onClick={toggleSidebar}>
               <Menu size={20} />
@@ -69,7 +64,7 @@ const Sidebar = () => {
 
         <nav className="flex-1 space-y-1 p-2">
           {navigationItems.map((item) => (
-            <NavLink
+            <Link
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
@@ -85,7 +80,7 @@ const Sidebar = () => {
             >
               {item.icon}
               {(isOpen || isMobile) && <span className="ml-3">{item.name}</span>}
-            </NavLink>
+            </Link>
           ))}
         </nav>
       </aside>
