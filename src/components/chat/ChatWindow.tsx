@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Chat, Message, Media } from "@/pages/Dashboard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatWindowProps {
   chat: Chat;
@@ -47,14 +48,74 @@ const ChatWindow = ({
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [visibleMessages, setVisibleMessages] = useState<Message[]>([]);
+  const [page, setPage] = useState(1);
+  const messagesPerPage = 15;
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   
+  // Initialize with most recent messages
   useEffect(() => {
-    scrollToBottom();
+    if (chat.messages.length > 0) {
+      const reversedMessages = [...chat.messages].reverse();
+      const initialMessages = reversedMessages.slice(0, messagesPerPage);
+      setVisibleMessages(initialMessages.reverse());
+      setPage(1);
+    }
+  }, [chat.id]);
+  
+  // Add new messages when they come in
+  useEffect(() => {
+    if (chat.messages.length > 0 && visibleMessages.length > 0) {
+      const lastVisibleMessageId = visibleMessages[visibleMessages.length - 1].id;
+      const lastMessageIndex = chat.messages.findIndex(msg => msg.id === lastVisibleMessageId);
+      
+      if (lastMessageIndex !== -1 && lastMessageIndex < chat.messages.length - 1) {
+        // There are new messages to add
+        const newMessages = chat.messages.slice(lastMessageIndex + 1);
+        setVisibleMessages(prev => [...prev, ...newMessages]);
+      }
+    }
   }, [chat.messages]);
   
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // Scroll to bottom when new messages are added
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [visibleMessages]);
+  
+  const loadMoreMessages = useCallback(() => {
+    if (isLoadingMore || visibleMessages.length >= chat.messages.length) return;
+    
+    setIsLoadingMore(true);
+    
+    // Calculate next batch of messages to load
+    const nextPage = page + 1;
+    const startIndex = chat.messages.length - (nextPage * messagesPerPage);
+    const endIndex = chat.messages.length - ((page - 1) * messagesPerPage);
+    
+    // Get more messages
+    let moreMessages: Message[] = [];
+    if (startIndex >= 0) {
+      moreMessages = chat.messages.slice(Math.max(0, startIndex), endIndex);
+    } else {
+      moreMessages = chat.messages.slice(0, endIndex);
+    }
+    
+    // Insert at beginning
+    setVisibleMessages(prev => [...moreMessages, ...prev]);
+    setPage(nextPage);
+    setIsLoadingMore(false);
+  }, [chat.messages, visibleMessages, page, isLoadingMore]);
+  
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop } = e.currentTarget;
+    
+    // If scrolled near the top, load more messages
+    if (scrollTop < 50 && !isLoadingMore && visibleMessages.length < chat.messages.length) {
+      loadMoreMessages();
+    }
+  }, [loadMoreMessages, isLoadingMore, visibleMessages, chat.messages]);
   
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,14 +215,32 @@ const ChatWindow = ({
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-4">
-          {chat.messages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} />
-          ))}
-          <div ref={messagesEndRef} />
+      <ScrollArea 
+        className="flex-1" 
+        onScroll={handleScroll}
+      >
+        <div className="p-4">
+          {visibleMessages.length < chat.messages.length && (
+            <div className="text-center mb-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={loadMoreMessages} 
+                disabled={isLoadingMore}
+                className="text-xs"
+              >
+                {isLoadingMore ? "Carregando..." : "Carregar mensagens anteriores"}
+              </Button>
+            </div>
+          )}
+          <div className="space-y-4">
+            {visibleMessages.map((msg) => (
+              <MessageBubble key={msg.id} message={msg} />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
-      </div>
+      </ScrollArea>
       
       {currentTab === "ai" ? (
         <div className="p-3 border-t">
