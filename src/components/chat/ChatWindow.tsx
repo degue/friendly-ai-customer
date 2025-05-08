@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Chat, Message, Media } from "@/pages/Dashboard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -146,7 +147,6 @@ const ChatWindow = ({
                   Transferir para IA
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem>Marcar como resolvido</DropdownMenuItem>
               <DropdownMenuItem>Ver informações do cliente</DropdownMenuItem>
               <DropdownMenuItem>Exportar conversa</DropdownMenuItem>
             </DropdownMenuContent>
@@ -163,54 +163,68 @@ const ChatWindow = ({
         </div>
       </div>
       
-      <div className="p-3 border-t">
-        <div className="flex gap-2 mb-3">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="rounded-full" 
-            onClick={handleSendImage}
-          >
-            <Image size={18} />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="rounded-full" 
-            onClick={handleSendVideo}
-          >
-            <Video size={18} />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="rounded-full" 
-            onClick={handleSendAudio}
-          >
-            <FileAudio size={18} />
-          </Button>
-          <Button 
-            variant={isRecording ? "destructive" : "outline"}
-            size="icon" 
-            className="rounded-full" 
-            onClick={handleRecordAudio}
-          >
-            <Mic size={18} />
-          </Button>
+      {currentTab === "ai" ? (
+        <div className="p-3 border-t">
+          <div className="flex justify-center">
+            <Button 
+              onClick={onTransferToAgent} 
+              className="bg-gray-600 hover:bg-gray-700 w-full"
+            >
+              <User size={18} />
+              <span className="ml-2">Transferir para atendente</span>
+            </Button>
+          </div>
         </div>
-        <form onSubmit={handleSendMessage} className="flex gap-2">
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Digite uma mensagem..."
-            className="flex-1"
-          />
-          <Button type="submit" disabled={message.trim() === ""} className="bg-gray-600 hover:bg-gray-700">
-            <Send size={18} />
-            <span className="ml-2">Enviar</span>
-          </Button>
-        </form>
-      </div>
+      ) : (
+        <div className="p-3 border-t">
+          <div className="flex gap-2 mb-3">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full" 
+              onClick={handleSendImage}
+            >
+              <Image size={18} />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full" 
+              onClick={handleSendVideo}
+            >
+              <Video size={18} />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full" 
+              onClick={handleSendAudio}
+            >
+              <FileAudio size={18} />
+            </Button>
+            <Button 
+              variant={isRecording ? "destructive" : "outline"}
+              size="icon" 
+              className="rounded-full" 
+              onClick={handleRecordAudio}
+            >
+              <Mic size={18} />
+            </Button>
+          </div>
+          <form onSubmit={handleSendMessage} className="flex gap-2">
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Digite uma mensagem..."
+              className="flex-1"
+            />
+            <Button type="submit" disabled={message.trim() === ""} className="bg-gray-600 hover:bg-gray-700">
+              <Send size={18} />
+              <span className="ml-2">Enviar</span>
+            </Button>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

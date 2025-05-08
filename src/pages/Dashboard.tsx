@@ -313,6 +313,9 @@ const Dashboard = () => {
   const handleSendMessage = (content: string) => {
     if (!selectedChat) return;
     
+    // If on AI tab, don't allow sending messages
+    if (activeTab === "ai") return;
+    
     const newUserMessage: Message = {
       id: `user-${Date.now()}`,
       content,
@@ -330,7 +333,7 @@ const Dashboard = () => {
     };
     
     setSelectedChat(updatedChat);
-    setChats(chats.map(c => c.id === selectedChat.id ? updatedChat : c));
+    setChats(prevChats => prevChats.map(c => c.id === selectedChat.id ? updatedChat : c));
     
     // Simulate response after a delay
     setTimeout(() => {
@@ -350,7 +353,7 @@ const Dashboard = () => {
       };
       
       setSelectedChat(finalChat);
-      setChats(chats.map(c => c.id === selectedChat.id ? finalChat : c));
+      setChats(prevChats => prevChats.map(c => c.id === selectedChat.id ? finalChat : c));
     }, 1500);
   };
 
@@ -383,7 +386,7 @@ const Dashboard = () => {
     };
     
     setSelectedChat(updatedChat);
-    setChats(chats.map(c => c.id === selectedChat.id ? updatedChat : c));
+    setChats(prevChats => prevChats.map(c => c.id === selectedChat.id ? updatedChat : c));
     // Mudar para a aba de atendente
     setSearchParams({ tab: "agent" });
   };
@@ -417,7 +420,7 @@ const Dashboard = () => {
     };
     
     setSelectedChat(updatedChat);
-    setChats(chats.map(c => c.id === selectedChat.id ? updatedChat : c));
+    setChats(prevChats => prevChats.map(c => c.id === selectedChat.id ? updatedChat : c));
     // Mudar para a aba de IA
     setSearchParams({ tab: "ai" });
   };
