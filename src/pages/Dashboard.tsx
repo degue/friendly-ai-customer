@@ -9,12 +9,20 @@ import NoSelectedChat from "@/components/chat/NoSelectedChat";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+export interface Media {
+  type: "image" | "audio" | "video";
+  url: string;
+  thumbnail?: string;
+  duration?: number;
+}
+
 export interface Message {
   id: string;
   content: string;
   timestamp: Date;
   sender: "user" | "ai" | "agent";
   read: boolean;
+  media?: Media;
 }
 
 export interface Chat {
@@ -82,6 +90,17 @@ const Dashboard = () => {
           timestamp: new Date(Date.now() - 21 * 60000),
           sender: "user",
           read: false
+        },
+        {
+          id: "m5",
+          content: "Aqui está a foto do comprovante de pagamento:",
+          timestamp: new Date(Date.now() - 20 * 60000),
+          sender: "user",
+          read: false,
+          media: {
+            type: "image",
+            url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=500"
+          }
         }
       ]
     },
@@ -125,6 +144,18 @@ const Dashboard = () => {
           timestamp: new Date(Date.now() - 12.2 * 3600000),
           sender: "ai",
           read: true
+        },
+        {
+          id: "m5",
+          content: "Enviei um áudio explicando melhor o problema:",
+          timestamp: new Date(Date.now() - 12 * 3600000),
+          sender: "user",
+          read: true,
+          media: {
+            type: "audio",
+            url: "https://example.com/audio-sample.mp3",
+            duration: 32
+          }
         }
       ]
     },
@@ -154,6 +185,93 @@ const Dashboard = () => {
           timestamp: new Date(Date.now() - 2.15 * 86400000),
           sender: "agent",
           read: true
+        },
+        {
+          id: "m3",
+          content: "Gravei um vídeo mostrando o erro:",
+          timestamp: new Date(Date.now() - 2.1 * 86400000),
+          sender: "user",
+          read: true,
+          media: {
+            type: "video",
+            url: "https://example.com/video-sample.mp4",
+            thumbnail: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=500",
+            duration: 45
+          }
+        },
+        {
+          id: "m4",
+          content: "Obrigada pela ajuda!",
+          timestamp: new Date(Date.now() - 2 * 86400000),
+          sender: "user",
+          read: true
+        }
+      ]
+    },
+    {
+      id: "4",
+      contact: {
+        name: "Carlos Mendes",
+        number: "+55 41 98765-1234",
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos`
+      },
+      lastMessage: "Aqui está uma foto do produto com defeito",
+      lastMessageTime: new Date(Date.now() - 1 * 86400000),
+      unreadCount: 2,
+      status: "active",
+      handledBy: "ai",
+      messages: [
+        {
+          id: "m1",
+          content: "Olá, comprei um produto que veio com defeito",
+          timestamp: new Date(Date.now() - 1.2 * 86400000),
+          sender: "user",
+          read: true
+        },
+        {
+          id: "m2",
+          content: "Olá Carlos! Lamento pelo inconveniente. Poderia me fornecer detalhes sobre o produto e o defeito encontrado?",
+          timestamp: new Date(Date.now() - 1.18 * 86400000),
+          sender: "ai",
+          read: true
+        },
+        {
+          id: "m3",
+          content: "É uma cafeteira elétrica modelo X123, ela não está esquentando a água corretamente",
+          timestamp: new Date(Date.now() - 1.15 * 86400000),
+          sender: "user",
+          read: true
+        },
+        {
+          id: "m4",
+          content: "Entendi. Para que possamos avaliar melhor a situação, seria possível enviar uma foto ou vídeo do problema?",
+          timestamp: new Date(Date.now() - 1.1 * 86400000),
+          sender: "ai",
+          read: true
+        },
+        {
+          id: "m5",
+          content: "Aqui está uma foto do produto com defeito",
+          timestamp: new Date(Date.now() - 1 * 86400000),
+          sender: "user",
+          read: false,
+          media: {
+            type: "image",
+            url: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&q=80&w=500"
+          }
+        },
+        {
+          id: "m6",
+          content: "E aqui está um vídeo mostrando o problema:",
+          timestamp: new Date(Date.now() - 0.95 * 86400000),
+          sender: "user",
+          read: false,
+          media: {
+            type: "video",
+            url: "https://example.com/video-sample2.mp4",
+            thumbnail: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=500",
+            duration: 28
+          }
         }
       ]
     }

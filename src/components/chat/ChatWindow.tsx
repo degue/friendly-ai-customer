@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from "react";
-import { Chat, Message } from "@/pages/Dashboard";
+import { Chat, Message, Media } from "@/pages/Dashboard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,12 @@ import {
   User,
   Phone,
   MoreVertical, 
-  Bot
+  Bot,
+  Image,
+  Video,
+  FileAudio,
+  Play,
+  Pause
 } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -156,6 +161,7 @@ interface MessageBubbleProps {
 const MessageBubble = ({ message }: MessageBubbleProps) => {
   const isUser = message.sender === "user";
   const isAI = message.sender === "ai";
+  const [isPlaying, setIsPlaying] = useState(false);
   
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -184,6 +190,60 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
           </div>
         )}
         <p className="text-sm">{message.content}</p>
+        
+        {message.media && (
+          <div className="mt-2">
+            {message.media.type === "image" && (
+              <div className="relative rounded-md overflow-hidden">
+                <img 
+                  src={message.media.url} 
+                  alt="Imagem enviada" 
+                  className="w-full h-auto object-cover rounded-md"
+                />
+                <div className="absolute top-2 left-2 bg-black/60 rounded-full p-1">
+                  <Image size={14} className="text-white" />
+                </div>
+              </div>
+            )}
+            
+            {message.media.type === "video" && (
+              <div className="relative rounded-md overflow-hidden">
+                <img 
+                  src={message.media.thumbnail} 
+                  alt="Thumbnail do vídeo" 
+                  className="w-full h-auto object-cover rounded-md"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-md">
+                  <Video size={40} className="text-white" />
+                </div>
+                <div className="absolute bottom-2 right-2 bg-black/60 rounded-sm px-1 py-0.5 text-xs text-white">
+                  {Math.floor(message.media.duration! / 60)}:{(message.media.duration! % 60).toString().padStart(2, '0')}
+                </div>
+              </div>
+            )}
+            
+            {message.media.type === "audio" && (
+              <div className="flex items-center gap-2 mt-1 p-2 bg-gray-700/30 rounded-md">
+                <button 
+                  onClick={() => setIsPlaying(!isPlaying)} 
+                  className="p-2 rounded-full bg-gray-800/50 text-white"
+                >
+                  {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                </button>
+                <div className="flex-1">
+                  <div className="h-1 w-full bg-gray-300/30 rounded-full">
+                    <div className="h-1 w-1/3 bg-white/80 rounded-full"></div>
+                  </div>
+                </div>
+                <div className="text-xs">
+                  {Math.floor(message.media.duration! / 60)}:{(message.media.duration! % 60).toString().padStart(2, '0')}
+                </div>
+                <FileAudio size={16} className="text-gray-300" />
+              </div>
+            )}
+          </div>
+        )}
+        
         <div
           className={`text-xs mt-1 ${
             isUser

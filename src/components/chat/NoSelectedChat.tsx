@@ -9,7 +9,7 @@ const NoSelectedChat = () => {
       </div>
       <h3 className="text-xl font-medium mb-1">Nenhuma conversa selecionada</h3>
       <p className="text-sm text-muted-foreground text-center max-w-xs">
-        Selecione uma conversa da lista para visualizar e responder às mensagens
+        Selecione uma conversa da lista para visualizar mensagens de texto, áudio, imagens e vídeos
       </p>
     </div>
   );
