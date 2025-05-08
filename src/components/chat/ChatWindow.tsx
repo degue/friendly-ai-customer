@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Chat, Message, Media } from "@/pages/Dashboard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,7 +14,8 @@ import {
   Video,
   FileAudio,
   Play,
-  Pause
+  Pause,
+  Mic
 } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +45,7 @@ const ChatWindow = ({
 }: ChatWindowProps) => {
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
   
   useEffect(() => {
     scrollToBottom();
@@ -60,6 +61,30 @@ const ChatWindow = ({
       onSendMessage(message.trim());
       setMessage("");
     }
+  };
+
+  const handleSendImage = () => {
+    // Simulate sending an image
+    onSendMessage("Enviando uma imagem...");
+    console.log("Image upload functionality would go here");
+  };
+
+  const handleSendVideo = () => {
+    // Simulate sending a video
+    onSendMessage("Enviando um vídeo...");
+    console.log("Video upload functionality would go here");
+  };
+
+  const handleSendAudio = () => {
+    // Simulate sending audio
+    onSendMessage("Enviando um áudio...");
+    console.log("Audio upload functionality would go here");
+  };
+
+  const handleRecordAudio = () => {
+    // Toggle recording state
+    setIsRecording(!isRecording);
+    console.log(isRecording ? "Stopping recording" : "Starting recording");
   };
 
   const getStatusLabel = (status: string) => {
@@ -138,18 +163,54 @@ const ChatWindow = ({
         </div>
       </div>
       
-      <form onSubmit={handleSendMessage} className="p-3 border-t flex gap-2">
-        <Input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Digite uma mensagem..."
-          className="flex-1"
-        />
-        <Button type="submit" disabled={message.trim() === ""} className="bg-gray-600 hover:bg-gray-700">
-          <Send size={18} />
-          <span className="ml-2">Enviar</span>
-        </Button>
-      </form>
+      <div className="p-3 border-t">
+        <div className="flex gap-2 mb-3">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="rounded-full" 
+            onClick={handleSendImage}
+          >
+            <Image size={18} />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="rounded-full" 
+            onClick={handleSendVideo}
+          >
+            <Video size={18} />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="rounded-full" 
+            onClick={handleSendAudio}
+          >
+            <FileAudio size={18} />
+          </Button>
+          <Button 
+            variant={isRecording ? "destructive" : "outline"}
+            size="icon" 
+            className="rounded-full" 
+            onClick={handleRecordAudio}
+          >
+            <Mic size={18} />
+          </Button>
+        </div>
+        <form onSubmit={handleSendMessage} className="flex gap-2">
+          <Input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Digite uma mensagem..."
+            className="flex-1"
+          />
+          <Button type="submit" disabled={message.trim() === ""} className="bg-gray-600 hover:bg-gray-700">
+            <Send size={18} />
+            <span className="ml-2">Enviar</span>
+          </Button>
+        </form>
+      </div>
     </div>
   );
 };
